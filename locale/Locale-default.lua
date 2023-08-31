@@ -42,6 +42,7 @@ L["AutoBarClassBarRogue"] = get_class_name(4)
 L["AutoBarClassBarShaman"] = get_class_name(7)
 L["AutoBarClassBarWarlock"] = get_class_name(9)
 L["AutoBarClassBarWarrior"] = get_class_name(1)
+L["AutoBarClassBarEvoker"] = get_class_name(13)
 
 atl("ResetCategoryDescription", "Removes ALL custom categories")
 
@@ -241,6 +242,10 @@ local quick_sets =
 	"Muffin.Covenant.Anima",
 	"Muffin.Covenant.Conduit",
 	"Muffin.Covenant.Wildseed",
+	"Misc.Unlock",
+	"Muffin.ItemEnchant.Permanent",
+	"Muffin.ItemEnchant.Temporary",
+	"Muffin.Bandages.Basic",
 }
 
 atl_table(quick_sets);

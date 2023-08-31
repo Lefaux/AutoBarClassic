@@ -91,13 +91,13 @@ function ABGCode.RawListToItemIDList(p_raw_list)
 end
 
 
--- Convert list of negative numbered spellId to spellName.
+-- Convert list of negative numbered spell_id to spellName.
 local function PTSpellIDsToSpellName(p_cast_list)
 --print("PTSpellIDsToSpellName castList " .. tostring(p_cast_list))
 
 	for i = 1, # p_cast_list do
-		local spellId = p_cast_list[i] * -1
-		p_cast_list[i] = GetSpellInfo(spellId)
+		local spell_id = p_cast_list[i] * -1
+		p_cast_list[i] = GetSpellInfo(spell_id)
 	end
 	return p_cast_list
 end
@@ -199,6 +199,14 @@ end
 -- Optional attributes:
 --		targeted, nonCombat, battleground
 ---@class CategoryClass
+---@field categoryKey string
+---@field description string	localized name
+---@field texture string
+---@field targeted boolean
+---@field nonCombat boolean
+---@field battleground boolean
+---@field noSpellCheck boolean
+---@field items table
 ABGCode.CategoryClass = {}
 local CategoryClass = ABGCode.CategoryClass
 
@@ -386,9 +394,6 @@ function SpellsCategory:Refresh()
 end
 
 
--- Custom Category
-ABGCode.CustomCategory = CreateFromMixins(CategoryClass)
-local CustomCategory = ABGCode.CustomCategory
 
 -- Return a unique key to use
 ---@param p_custom_category_name string
@@ -410,6 +415,12 @@ function ABGCode.GetNewCustomCategoryName(baseName, index)
 	end
 	return newName, newKey
 end
+
+
+-- Custom Category
+ABGCode.CustomCategory = CreateFromMixins(CategoryClass)
+local CustomCategory = ABGCode.CustomCategory
+
 
 -- Select an Icon to use
 -- Add description verbatim to localization
@@ -550,11 +561,10 @@ function ABGCode.InitializeAllCategories()
 		AutoBarCategoryList["Macro.Raid Target"]:AddMacroText('/run SetRaidTarget("target", ' .. index .. ')',  "Interface/targetingframe/UI-RaidTargetingIcon_" .. index, L["Raid " .. index])
 	end
 
-	AutoBarCategoryList["Battle Pet.Favourites"] = ABGCode.MacroTextCategory:new( "Battle Pet.Favourites", "inv_misc_pheonixpet_01")
+	AutoBarCategoryList["Battle Pet.Favourites"] = MacroTextCategory:new( "Battle Pet.Favourites", "inv_misc_pheonixpet_01")
 
 
 	AutoBarCategoryList["Misc.Hearth"] = ItemsCategory:new("Misc.Hearth", "INV_Misc_Rune_01", "Misc.Hearth")
-	AutoBarCategoryList["Muffin.Misc.Hearth"] = ItemsCategory:new("Muffin.Misc.Hearth", "INV_Misc_Rune_01", "Muffin.Misc.Hearth")
 
 	AutoBarCategoryList["Consumable.Buff.Free Action"] = ItemsCategory:new( "Consumable.Buff.Free Action", "INV_Potion_04", "Consumable.Buff.Free Action")
 
@@ -889,6 +899,8 @@ function ABGCode.InitializeAllCategories()
 
 	AutoBarCategoryList["Misc.Lockboxes"] = ItemsCategory:new("Misc.Lockboxes", "INV_Trinket_Naxxramas06", "Misc.Lockboxes")
 
+	AutoBarCategoryList["Misc.Unlock"] = ItemsCategory:new("Misc.Unlock", "INV_Trinket_Naxxramas06", "Misc.Unlock")
+
 	AutoBarCategoryList["Misc.Usable.BossItem"] = ItemsCategory:new("Misc.Usable.BossItem", "INV_BannerPVP_02", "Misc.Usable.BossItem")
 
 	AutoBarCategoryList["Misc.Usable.Fun"] = ItemsCategory:new("Misc.Usable.Fun", "INV_Misc_Toy_10", "Misc.Usable.Fun")
@@ -917,6 +929,7 @@ end
 function ABGCode.UpdateCustomCategories()
 	local customCategories = AutoBarDB2.custom_categories
 
+	-- Add any customCategories that are not already in AutoBarCategoryList
 	for categoryKey, customCategoriesDB in pairs(customCategories) do
 		assert(customCategoriesDB and (categoryKey == customCategoriesDB.categoryKey), "customCategoriesDB nil or bad categoryKey")
 		if (not AutoBarCategoryList[categoryKey]) then
@@ -924,6 +937,8 @@ function ABGCode.UpdateCustomCategories()
 		end
 	end
 
+	-- Refresh ALL categories (not just Custom ones)
+	-- Prune AutoBarCategoryList, removing any Custom Categories that are not in customCategories
 	for categoryKey, categoryInfo in pairs(AutoBarCategoryList) do
 		categoryInfo:Refresh()
 
@@ -932,12 +947,13 @@ function ABGCode.UpdateCustomCategories()
 		end
 	end
 
-	for categoryKey in pairs(AutoBar.categoryValidateList) do
-		AutoBar.categoryValidateList[categoryKey] = nil
-	end
+
+	--Rebuild categoryValidateList
+	wipe(AutoBar.categoryValidateList)
 	for categoryKey, categoryInfo in pairs(AutoBarCategoryList) do
 		AutoBar.categoryValidateList[categoryKey] = categoryInfo.description
 	end
+
 end
 
 
